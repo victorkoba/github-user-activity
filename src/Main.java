@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.util.Scanner;
 
 public class Main {
     static void getInfoOfGithubApi(String username) throws Exception {
@@ -13,6 +14,12 @@ public class Main {
             URL url = new URL("https://api.github.com/users/" + username + "/events");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
+            if (connection.getResponseCode() == 404) {
+                throw new RuntimeException("User \"" + username + "\" not found.");
+            }
+            if (connection.getResponseCode() == 403 || connection.getResponseCode() == 429) {
+                throw new RuntimeException("Too many requests, please try again later.");
+            }
             if (connection.getResponseCode() != 200) {
                 throw new RuntimeException("HTTP error code : " + connection.getResponseCode());
             }
@@ -36,15 +43,18 @@ public class Main {
                 System.out.println(type + " em " + repository + " (" + date + ")");
             }
         } catch (Exception e) {
-            throw e;
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
     public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
         try {
-            getInfoOfGithubApi("victorkoba");
+            System.out.print("Enter username: ");
+            String username = scanner.next();
+            getInfoOfGithubApi(username);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println("Error: " + e.getMessage());
         }
     }
 }
